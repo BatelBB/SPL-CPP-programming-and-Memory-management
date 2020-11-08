@@ -5,10 +5,13 @@
 
 using json = nlohmann::json;
 
-
-
-Graph::Graph(std::vector<std::vector<int>> matrix)
+Graph::Graph()
 {
+}
+Graph::Graph(std::vector<std::vector<int>> matrix) : edges(matrix), isInfectedVec(std::vector<bool>(matrix[0].size(), false))
+{
+}
+/**{
 
     std::ifstream ifs("/home/spl211/Assignment1/Test/config1.json");
     json jf = json::parse(ifs);
@@ -29,14 +32,14 @@ Graph::Graph(std::vector<std::vector<int>> matrix)
         matrix.push_back(edges);
     }
 */
-    
-}
 
-// CPP program to convert Adjacency matrix 
-// representation to Adjacency List 
-  
-// converts from adjacency matrix to adjacency list 
-std::vector<std::vector<int>> convert( std::vector<std::vector<int>> a) 
+//}
+
+// CPP program to convert Adjacency matrix
+// representation to Adjacency List
+
+// converts from adjacency matrix to adjacency list
+/**std::vector<std::vector<int>> convert( std::vector<std::vector<int>> a) 
 { 
     std::vector<std::vector<int>> adjList(a.size()); 
     for (int i = 0; i < a.size(); i++) 
@@ -68,12 +71,35 @@ void toString()
 
 void Graph::infectNode(int nodeInd)
 {
+    isInfectedVec[nodeInd] = true;
 }
 bool Graph::isInfected(int nodeInd)
 {
+    return isInfectedVec[nodeInd];
 }
 
-std::vector<std::vector<int>> edges() const{
-    return edges;
+std::vector<int> Graph::getNodeNeighbors(int nodeInd) const
+{
+    std::vector<int> nodeNeighbors;
+    for (int i = 0; i < edges.size(); i++)
+    {
+        if (edges[nodeInd][i] == 1)
+        {
+            nodeNeighbors.push_back(i);
+        }
+    }
 }
 
+void Graph::remove(int nodeInd)
+{
+    for (int i = 0; i < edges.size(); i++)
+    {
+        edges[i][nodeInd] = 0;
+        edges[nodeInd][i] = 0;
+    }
+}
+
+int Graph::graphSize() const
+{
+    return edges[0].size();
+}
