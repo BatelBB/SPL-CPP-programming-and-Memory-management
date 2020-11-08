@@ -2,29 +2,40 @@
 #define AGENT_H_
 
 #include <vector>
-//I'm not sure about this class at all, it represents the different agents, not sure what it does.
-class Agent{
+
+class Agent
+{
+
 public:
-    Agent(Session& session);
-    virtual Agent* clone()=0;
-    virtual void act()=0;
+    Agent(Session &session);
+    virtual Agent *clone() const = 0;
+    virtual void act() = 0;
+    virtual int getNodeIndex() const;
+
 protected:
-    Session& session;
+    Session &session;
 };
 
-class ContactTracer: public Agent{
+class ContactTracer : public Agent
+{
+
 public:
-    ContactTracer(Session& session);
-    virtual Agent* clone();
+    ContactTracer(Session &session);
+    virtual Agent *clone() = 0;
     virtual void act();
+
+    virtual int getNodeIndex() const;
 };
 
+class Virus : public Agent
+{
 
-class Virus: public Agent{
 public:
-    Virus(int nodeInd, Session& session);
-    virtual Agent* clone();
+    Virus(int nodeInd, Session &session);
+    virtual Agent *clone() const;
     virtual void act();
+    virtual int getNodeIndex() const;
+
 protected:
     const int nodeInd;
 };
