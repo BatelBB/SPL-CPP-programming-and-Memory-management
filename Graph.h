@@ -3,20 +3,38 @@
 
 #include <vector>
 
-class Graph{
+class Graph
+{
 public:
-    //it gets a matrix that is a vector of vectors of type int, I think we supposed to create a graph out of it
+    //default constructor
+    Graph();
+
+    //constructor, initilizing with edges and "isInfectedVec" - to get a graph that's initilized from zero.
     Graph(std::vector<std::vector<int>> matrix);
-    
-    //represents the infectedNode in the current cycle in the graph
+
+    //it take the current node and puts the virus in it. (bool - turns it to true)
     void infectNode(int nodeInd);
 
-    //boolean method that checks if the current node is infected or not
+    //boolean method that checks if the current node is infected or not (calls the isInfectedVec with the curr nodeInd)
     bool isInfected(int nodeInd);
-private:
 
-    //the edges of the graph, not sure what to do with that
+    //uses a queue data structure to handle the neighbors of the node,
+    //take a one dimention int vector and pushes it every time there's an edge between two nodes.
+    std::vector<int> getNodeNeighbors(int nodeInd) const;
+
+    //takes the node that has been infected and removes it from the graph, separeting it from it fellow nodes.
+    //using the edges 2 dimention vector - deleting the edges (0).
+    void remove(int nodeInd);
+
+    //returns the number of edges in the 2 dimention vector edges.
+    int graphSize() const;
+
+private:
+    //the edges of the graph
     std::vector<std::vector<int>> edges;
+
+    //a boolean vector array that contains the infection information of each node.
+    std::vector<bool> isInfectedVec;
 };
 
 #endif
