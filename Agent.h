@@ -21,7 +21,7 @@ class ContactTracer : public Agent
 
 public:
     ContactTracer(Session &session);
-    virtual Agent *clone() = 0;
+    virtual Agent *clone() const;
     virtual void act();
 
     virtual int getNodeIndex() const;
