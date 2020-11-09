@@ -88,18 +88,34 @@ std::vector<int> Graph::getNodeNeighbors(int nodeInd) const
             nodeNeighbors.push_back(i);
         }
     }
+    return nodeNeighbors;
 }
 
 void Graph::remove(int nodeInd)
 {
     for (int i = 0; i < edges.size(); i++)
     {
-        edges[i][nodeInd] = 0;
         edges[nodeInd][i] = 0;
+        edges[i][nodeInd] = 0;
+
     }
 }
 
 int Graph::graphSize() const
 {
     return edges[0].size();
+}
+
+std::vector<std::vector<int>> Graph::getGraph() const {
+    return edges;
+}
+
+std::vector<int> Graph::getInfectedNodes() const{
+    std::vector<int> currNodeInfected;
+    for(int i=0; i<isInfectedVec.size(); i++){
+        if (isInfectedVec[i]){
+            currNodeInfected.push_back(i);
+        }
+    }
+    return currNodeInfected;
 }
