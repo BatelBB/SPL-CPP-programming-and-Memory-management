@@ -21,7 +21,7 @@ class Session
 {
 public:
   //write Json file
-  void writeJson(nlohmann::json &js);
+  json writeJson();
 
   //read from the Json file
   void readJson(const nlohmann::json &js);
@@ -47,7 +47,7 @@ public:
   //takes the infected nodes and sends them to the queue
   void enqueueInfected(int);
 
-    //the contact tracer uses this method to take out the infected nodes that it already used
+  //the contact tracer uses this method to take out the infected nodes that it already used
   int dequeueInfected();
 
   //returns the tree type - MaxRankTree/RootTree/CycleTree
