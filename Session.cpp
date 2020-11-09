@@ -37,8 +37,25 @@ Session::Session(const std::string &path) : currCycleInd(0)
 //   Agent* clone = agent.clone();      //We added from the screenshot
 //}
 
-void simulate()
+void Session::simulate()
 {
+    bool isDone = false;
+
+    while (!isDone){
+        std::vector<Agent*> cloneAgents;
+        for(int i=0; i<agents.size(); i++){
+            cloneAgents.push_back(agents[i]->clone());
+        }
+        for(int i=0; i<cloneAgents.size(); i++){
+            (*cloneAgents[i]).act();
+        }
+        isDone = true;
+        for(int i=0; i<isCarrier.size(); i++){
+            if(isVirusCarrier(i) != isInfected(i)){
+                isDone = false;
+            }
+        }
+    }
 }
 
 void Session::addAgent(const Agent &agent)
@@ -51,9 +68,10 @@ void Session::addAgent(const Agent &agent)
     }
 }
 
-//TODO
-void setGraph(const Graph &graph)
-{
+
+void Session::setGraph(const Graph &graph)
+{   
+    g=graph;
 }
 
 void Session::enqueueInfected(int nodeInd)
@@ -79,8 +97,13 @@ TreeType Session::getTreeType() const
     return treeType;
 }
 
-void Session::writeJson(json &js)
+json Session::writeJson()
 {
+    json js;
+    js["graph"] = g.getGraph();
+    js["infected"] = g.getInfectedNodes();
+
+    return js;
 }
 
 void Session::readJson(const json &js)
