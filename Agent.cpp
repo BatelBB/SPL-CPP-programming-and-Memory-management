@@ -1,4 +1,3 @@
-#include <iostream>
 #include "Agent.h"
 #include "Tree.h"
 #include "Session.h"
@@ -17,11 +16,11 @@ Agent *ContactTracer::clone() const
 
 void ContactTracer::act()
 {
-    int currentNode = session.dequeueInfected();
+    int currNode = session.dequeueInfected();
 
-    if (currentNode != -1)
+    if (currNode != -1)
     {
-        Tree *currTree = session.BFS(currentNode);
+        Tree *currTree = session.BFS(currNode);
         int nodeToRemove = currTree->traceTree();
         session.remove(nodeToRemove);
         delete currTree;
