@@ -1,4 +1,4 @@
-#include <iostream>
+#include <vector>
 #include "Tree.h"
 #include "Session.h"
 
@@ -20,12 +20,12 @@ Tree *Tree::createTree(const Session &session, int rootLabel)
 {
     switch (session.getTreeType())
     {
-    case MaxRank:
-        return new MaxRankTree(rootLabel);
-    case Cycle:
-        return new CycleTree(rootLabel, session.getCurrCycleInd());
-    case Root:
-        return new RootTree(rootLabel);
+        case MaxRank:
+            return new MaxRankTree(rootLabel);
+        case Cycle:
+            return new CycleTree(rootLabel, session.getCurrCycleInd());
+        case Root:
+            return new RootTree(rootLabel);
     }
 }
 
@@ -35,7 +35,17 @@ CycleTree::CycleTree(int rootLabel, int currCycle) : Tree(rootLabel), currCycle(
 
 int CycleTree::traceTree()
 {
-    return 0;
+    int treeDepth = 0;
+    bool isDone = false;
+    Tree *currTree = this;
+
+    while (!isDone){
+        if(currCycle == treeDepth || !currTree -> getNodeChildren().empty()){
+            return currTree -> getCurrNode();
+        }
+        currTree = currTree -> getNodeChildren()[0];
+        treeDepth += 1;
+    }
 }
 
 Tree *CycleTree::clone() const
@@ -48,7 +58,28 @@ MaxRankTree::MaxRankTree(int rootLabel) : Tree(rootLabel)
 }
 int MaxRankTree::traceTree()
 {
-    return 0;
+    int treeMax =-1;
+    int nodeMax =-1;
+    std::queue<Tree *> QueueBFS;
+
+    QueueBFS.push(this);
+
+    while(!QueueBFS.empty()){
+        Tree* currTree = QueueBFS.front();
+        QueueBFS.pop();
+
+        std::vector<Tree*> currNodeChildren = currTree -> getNodeChildren();
+
+        int currRank = currNodeChildren.size();
+        if(currRank > treeMax){
+            treeMax = currRank;
+            nodeMax = currTree -> getCurrNode();
+        }
+        for (int i=0; i<currNodeChildren.size(); i++){
+            QueueBFS.push(currNodeChildren[i]);
+        }
+    }
+    return nodeMax;
 }
 
 Tree *MaxRankTree::clone() const
@@ -61,10 +92,14 @@ RootTree::RootTree(int rootLabel) : Tree(rootLabel)
 }
 int RootTree::traceTree()
 {
-    return 0;
+    return getCurrNode();
 }
 
 Tree *RootTree::clone() const
 {
     return new RootTree(*this);
+}
+
+std::vector<Tree *> Tree::getNodeChildren() const {
+    return children;
 }
