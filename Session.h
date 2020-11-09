@@ -21,14 +21,10 @@ class Session
 {
 public:
   //write Json file
-  json writeJson();
+  nlohmann::json writeJson();
 
   //read from the Json file
   void readJson(const nlohmann::json &js);
-
-  //Our Method - from screenshot
-  //default constructor(?)
-  Session(const Session &other);
 
   //demonstrates the path that the agents (virus/contact tracer) are doing
   Session(const std::string &path);
