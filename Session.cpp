@@ -193,20 +193,20 @@ Tree *Session::BFS(int nodeInd) const
 
         neighbors = getNodeNeighbors(currNode);
 
+        int nodeChildIndex = 0;
         for (int i = 0; i < neighbors.size(); i++)
         {
             if (!setVisited[neighbors[i]])
             {
                 Tree *child = Tree::createTree(*this, neighbors[i]);
                 setVisited[neighbors[i]] = true;
-                queueBFSTree.push(child);
+
                 currTree->addChild(*child);
+                queueBFSTree.push(currTree->getNodeChildren()[nodeChildIndex]);
+                nodeChildIndex++;
             }
         }
-        if (currTree != root)
-        {
-            delete (currTree);
-        }
+
     }
 
     return root;
