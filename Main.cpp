@@ -16,8 +16,8 @@ int main(int argc, char** argv){
     sess.simulate();
 
     json js = sess.writeJson();
-    ofstream o("output.json");
-    o << js << endl;
+    ofstream out("output.json");
+    out << js << endl;
     
     return 0;
 }
