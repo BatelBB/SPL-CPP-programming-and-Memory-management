@@ -29,15 +29,18 @@ public:
     //an abstract method
     virtual int traceTree() = 0;
 
-protected:
+    //returns a vector with the children of the current node
+    std::vector<Tree *> getNodeChildren() const;
+
+private:
     //represents the node of the current tree
     int node;
-
+protected:
     //Using the queue to add children
     std::vector<Tree *> children;
 };
 
-//with this tree the viruse knows where to go
+//with this tree the virus knows where to go
 class CycleTree : public Tree
 {
 public:
@@ -61,21 +64,24 @@ public:
     //constructor
     MaxRankTree(int rootLabel);
 
-    //virtucal method - return the index of the node in the graph
+    //virtual method - return the index of the node in the graph
     virtual int traceTree();
 
     //virtual clone method - clones the tree - (copy constructor)
     virtual Tree *clone() const;
+
+private:
+    int maxTree;
 };
 
-//returnes the RootTree of the tree that the contactTracer did the BFS search on
+//returns the RootTree of the tree that the contactTracer did the BFS search on
 class RootTree : public Tree
 {
 public:
     //constructor
     RootTree(int rootLabel);
 
-    //virtucal method - return the index of the node in the graph
+    //virtual method - return the index of the node in the graph
     virtual int traceTree();
 
     //virtual clone method - clones the tree - (copy constructor)
