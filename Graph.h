@@ -29,6 +29,10 @@ public:
     //returns the number of edges in the 2 dimention vector edges.
     int graphSize() const;
 
+    std::vector<std::vector<int>> getGraph() const;
+
+    std::vector<int> getInfectedNodes() const;
+
 private:
     //the edges of the graph
     std::vector<std::vector<int>> edges;
