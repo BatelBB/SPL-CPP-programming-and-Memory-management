@@ -1,213 +1,246 @@
-#include <iostream>
-#include <fstream>
-#include <string>
-#include "json.hpp"
-#include "Session.h"
-#include "Agent.h"
-#include "Graph.h"
+#include <vector>
+	#include <string>
+	#include "Session.h"
+	#include "Agent.h"
+	#include "Graph.h"
+	#include "json.hpp"
+	#include <iostream>
+	#include <fstream>
+	
 
-using json = nlohmann::json;
+	using json = nlohmann::json;
+	using namespace std;
+	
 
-//std::ifstream ifs("/home/spl211/Assignment1/Test/config1.json");
-//json js = json::parse(ifs);
+	Session::Session(const std::string& path):currentCycle(0)
+	{
+	    // read a JSON file
+	    ifstream i(path);
+	    json j;
+	    i >> j;
+	
 
-//Our Method - Dolav Screenshot
-//Session::Session(const Session &other) : g(), treeType(other.treeType), agents()
-//{
-//for (int i = 0; i < other.agents.size(); ++i)
-// {
-//     Agent *newAgent = other.agents[i].clone();
-//     agents.push_back(newAgent);
-// }
-//}
+	    this->from_json(j);
+	}
+	
 
-//the initilization and the mimush is from Dolav video
-Session::Session(const std::string &path) : currCycleInd(0)
-{
-    std::ifstream i(path);
-    json js;
-    i >> js;
+	json Session::to_json() 
+	{
+	    json j;
+	    j["graph"] = g.getEdges();
+	    j["infected"] = g.getInfected();
+	    return j;
+	    
+	}
+	
 
-    this->readJson(js);
-}
+	void Session::from_json(const json& j) 
+	{
+	    // initialize g
+	    vector<vector<int>> matrix;
+	    j.at("graph").get_to(matrix);
+	    g = Graph(matrix);
+	
 
-//Session.addAgent(Virus(2));            //We added from the screenshot
+	    //initialize hasVirus
+	    hasVirus = vector<bool>(matrix[0].size(),false);
+	
 
-//addAgent(const Agent& agent){
-//   Agent* clone = agent.clone();      //We added from the screenshot
-//}
+	    //initialize treeType
+	    string treeLetter = j["tree"];
+	    if (treeLetter == "M")
+	    {
+	        treeType = MaxRank;
+	    }
+	    else
+	    {
+	        if (treeLetter == "C")
+	        {
+	            treeType = Cycle;
+	        }
+	        else
+	        {
+	            treeType = Root;
+	        }  
+	    }
+	    
+	
 
-void Session::simulate()
-{
-    bool isDone = false;
+	    // initialize agents
+	    for (auto& el : j.at("agents"))
+	    {
+	        std::string agentType = el[0];
+	        int nodeInd = el[1];
+	        if (agentType == "V")
+	        {
+	            addAgent(Virus(nodeInd , *this));
+	        }
+	        else
+	        {
+	            addAgent(ContactTracer(*this));
+	        }
+	    }
+	}
+	
 
-    while (!isDone){
-        std::vector<Agent*> cloneAgents;
-        for(int i=0; i<agents.size(); i++){
-            cloneAgents.push_back(agents[i]->clone());
-        }
-        for(int i=0; i<cloneAgents.size(); i++){
-            (*cloneAgents[i]).act();
-        }
-        isDone = true;
-        for(int i=0; i<isCarrier.size(); i++){
-            if(isVirusCarrier(i) != isInfected(i)){
-                isDone = false;
-            }
-        }
-    }
-}
+	// might not be the best idea to just delegate to g
+	void Session::infectNode(int nodeInd)
+	{
+	    g.infectNode(nodeInd);
+	}
+	bool Session::isInfected(int nodeInd)
+	{
+	    return g.isInfected(nodeInd);
+	}
+	std::vector<int> Session::getNeighbours(int nodeInd) const
+	{
+	    return g.getNeighbours(nodeInd);
+	}
+	void Session::isolate(int nodeInd)
+	{
+	    g.isolate(nodeInd);
+	}
+	
 
-void Session::addAgent(const Agent &agent)
-{
-    agents.push_back(agent.clone());
-    int nodeIndex = agent.getNodeIndex();
-    if (nodeIndex != -1)
-    {
-        isCarrier[nodeIndex] = true;
-    }
-}
+	
 
+	// when a virus is added, hasVirus is updated
+	void Session::addAgent(const Agent& agent)
+	{
+	    // need to clone agent to add to list, according to forum post
+	    // https://www.cs.bgu.ac.il/~spl211/Assignments/Assignment_1Forum?action=show-thread&id=4292df802b6b39d3b33a6db7d72bec99
+	    agents.push_back(agent.clone());
+	
 
-void Session::setGraph(const Graph &graph)
-{   
-    g=graph;
-}
+	    int nodeInd = agent.getNodeInd();
+	    if (nodeInd!= -1)
+	    {
+	        hasVirus[nodeInd] = true;
+	    }      
+	}
+	
 
-void Session::enqueueInfected(int nodeInd)
-{
-    //push_back vector
-    infectedQueue.push(nodeInd);
-}
-// use vectors to be productive
-//takes the object in the 0 spot and deletes it
-int Session::dequeueInfected()
-{
-    if (!infectedQueue.empty())
-    {
-        int nextNode = infectedQueue.front();
-        infectedQueue.pop();
-        return nextNode;
-    }
-    return -1;
-}
+	
 
-TreeType Session::getTreeType() const
-{
-    return treeType;
-}
+	bool Session::hasVirusAt(int nodeInd) const
+	{
+	    return hasVirus[nodeInd];
+	}
+	
 
-json Session::writeJson()
-{
-    json js;
-    js["graph"] = g.getGraph();
-    js["infected"] = g.getInfectedNodes();
+	
 
-    return js;
-}
+	void Session::enqueueInfected(int nodeInd)
+	{
+	    infectedQueue.push(nodeInd);
+	}
+	
 
-void Session::readJson(const json &js)
-{
-    std::vector<std::vector<int>> matrix;
-    js.at("graph").get_to(matrix);
-    g = Graph(matrix);
+	int Session::dequeueInfected()
+	{
+	    if(!infectedQueue.empty())
+	    {
+	        int nextInfected = infectedQueue.front();
+	        infectedQueue.pop();
+	        return nextInfected;
+	    }
+	    return -1;
+	}
+	
 
-    isCarrier = std::vector<bool>(matrix[0].size(), false);
+	int Session::getCurrentCycle() const
+	{
+	    return currentCycle;
+	}
+	
 
-    std::string treeTypeJs = js["tree"];
-    if (treeTypeJs == "M")
-    {
-        treeType = MaxRank;
-    }
-    else
-    {
-        if (treeTypeJs == "C")
-        {
-            treeType = Cycle;
-        }
-        else
-        {
-            treeType = Root;
-        }
-    }
+	
 
-    for (auto &elem : js.at("agents"))
-    {
-        std::string agentType = elem[0];
-        int nodeIndex = elem[1];
-        if (agentType == "V")
-        {
-            addAgent(Virus(nodeIndex, *this));
-        }
-        else
-        {
-            addAgent(ContactTracer(*this));
-        }
-    }
-}
-void Session::infectNode(int nodeInd)
-{
-    g.infectNode(nodeInd);
-}
+	Tree* Session::BFS(int nodeInd) const
+	{
+	    vector<int> neighbours = getNeighbours(nodeInd);
+	
 
-bool Session::isInfected(int nodeInd)
-{
-    g.infectNode(nodeInd);
-}
+	    vector<bool> visited(g.size(), false);
+	  
+	    // Create a queue for BFS 
+	    queue<Tree *> BFSqueue; 
+	  
+	    Tree* root = Tree::createTree(*this,nodeInd);
+	    // Mark the current node as visited and enqueue it 
+	    visited[nodeInd] = true; 
+	    BFSqueue.push(root); 
+	
 
-std::vector<int> Session::getNodeNeighbors(int nodeInd) const
-{
-    return g.getNodeNeighbors(nodeInd);
-}
-void Session::remove(int nodeInd)
-{
-    g.remove(nodeInd);
-}
+	    
+	  
+	    //This is gonna be a bitch to debug lol
+	    while(!BFSqueue.empty()) 
+	    { 
+	        // Dequeue a vertex from queue 
+	        Tree* currentTree = BFSqueue.front(); 
+	        int currentNode = currentTree->getNode();
+	        BFSqueue.pop();
+	
 
-bool Session::isVirusCarrier(int nodeInd) const
-{
-    return isCarrier[nodeInd];
-}
+	        neighbours = getNeighbours(currentNode);
+	
 
-int Session::getCurrCycleInd() const
-{
-    return currCycleInd;
-}
+	        int childNum = 0;
+	        for (int i=0; i<neighbours.size() ; i++)
+	        {
+	            
+	            if (!visited[neighbours[i]])
+	            {   // need to delete child?
+	                Tree* child = Tree::createTree(*this,neighbours[i]);
+	                visited[neighbours[i]] = true;
+	                
+	                currentTree->addChild(*child);
+	                BFSqueue.push(currentTree->getChildren()[childNum]);
+	                childNum++;
+	            }
+	        } 
+	    }
+	
 
-Tree *Session::BFS(int nodeInd) const
-{
-    std::vector<int> neighbors = getNodeNeighbors(nodeInd);
-    std::vector<bool> setVisited(g.graphSize(), false);
+	    return root;
+	}
+	
 
-    std::queue<Tree *> queueBFSTree;
+	
 
-    Tree *root = Tree::createTree(*this, nodeInd);
-    setVisited[nodeInd] = true;
-    queueBFSTree.push(root);
+	TreeType Session::getTreeType() const
+	{
+	    return treeType;
+	}
+	
 
-    while (!queueBFSTree.empty())
-    {
-        Tree *currTree = queueBFSTree.front();
-        int currNode = currTree->getCurrNode();
-        queueBFSTree.pop();
+	void Session::simulate()
+	{
+	    bool finished = false;
+	
 
-        neighbors = getNodeNeighbors(currNode);
+	    while (!finished)
+	    {
+	        vector<Agent*> copyAgents;
+	        for (int i=0; i<agents.size(); i++)
+	        {
+	            copyAgents.push_back(agents[i]->clone());
+	        }
+	        for (int i=0; i<copyAgents.size(); i++)
+	        {
+	            (*copyAgents[i]).act();
+	        }
+	
 
-        int nodeChildIndex = 0;
-        for (int i = 0; i < neighbors.size(); i++)
-        {
-            if (!setVisited[neighbors[i]])
-            {
-                Tree *child = Tree::createTree(*this, neighbors[i]);
-                setVisited[neighbors[i]] = true;
+	        finished = true;
+	        for (int i=0; i<hasVirus.size(); i++)
+	        {
+	            if (hasVirusAt(i) != isInfected(i))
+	            {
+	                finished = false;
+	            }
+	        }
+	    }
+	}
 
-                currTree->addChild(*child);
-                queueBFSTree.push(currTree->getNodeChildren()[nodeChildIndex]);
-                nodeChildIndex++;
-            }
-        }
-
-    }
-
-    return root;
-}

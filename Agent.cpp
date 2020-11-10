@@ -1,70 +1,87 @@
 #include "Agent.h"
-#include "Tree.h"
-#include "Session.h"
+	#include "Tree.h"
+	#include <vector>
+	
 
-Agent::Agent(Session &session) : session(session)
-{
-}
+	
 
-ContactTracer::ContactTracer(Session &session) : Agent(session)
-{
-}
-Agent *ContactTracer::clone() const
-{
-    return new ContactTracer(*this);
-}
+	Agent::Agent(Session& session): session(session){}
+	
 
-void ContactTracer::act()
-{
-    int currNode = session.dequeueInfected();
+	ContactTracer::ContactTracer(Session& session):Agent(session){}
+	
 
-    if (currNode != -1)
-    {
-        Tree *currTree = session.BFS(currNode);
-        int nodeToRemove = currTree->traceTree();
-        session.remove(nodeToRemove);
-        delete currTree;
-    }
-}
-int ContactTracer::getNodeIndex() const
-{
-    return -1;
-}
+	void ContactTracer::act()
+	{
+	    int currentNode = session.dequeueInfected();
+	    // assuming dequeueInfected returns -1 when no infected left
+	    if (currentNode!= -1)
+	    {
+	        Tree* currentTree = session.BFS(currentNode);
+	        int nodeToIsolate = currentTree->traceTree();
+	        // isolate should remove all links to adjacent nodes to the given node
+	        session.isolate(nodeToIsolate);
+	        delete currentTree;
+	    }
+	}
+	
 
-Virus::Virus(int nodeInd, Session &session) : Agent(session), nodeInd(nodeInd)
-{
-}
+	Agent* ContactTracer::clone() const
+	{
+	    return new ContactTracer(*this);
+	}
+	
 
-Agent *Virus::clone() const
-{
-    return new Virus(*this);
-}
+	int ContactTracer::getNodeInd() const
+	{
+	    return -1;
+	}
+	
 
-int Virus::getNodeIndex() const
-{
-    return nodeInd;
-}
+	
 
-//This method does 2 things:
-//first it checks if the node that it's currently in is infected - if not then it makes it infected - it takes from Session.h the "void enqueueInfected(int)"
-//the second thing is that it goes through the node's neighbor, goes in ascending order and choose the smaller one to settle - just put the virus in it.
-void Virus::act()
-{
-    if (!session.isInfected(nodeInd))
-    {
-        session.infectNode(nodeInd);
-        session.enqueueInfected(nodeInd);
-    }
+	
 
-    std::vector<int> neighbors = session.getNodeNeighbors(nodeInd);
+	Virus::Virus(int nodeInd, Session& session):Agent(session), nodeInd(nodeInd){}
+	
 
-    for (int i = 0; i < neighbors.size(); i++)
-    {
-        if (!session.isVirusCarrier(neighbors[i]))
-        {
-            Virus spreadVirus(neighbors[i], session);
-            session.addAgent(spreadVirus);
-            break;
-        }
-    }
-}
+	// act() makes the virus infect the node it occupies if it hadn't already, and spread to one virus-free neighbour if it can.
+	void Virus::act()
+	{
+	    // The virus infects the current node as it's first action
+	    if (!session.isInfected(nodeInd))
+	    {
+	        session.infectNode(nodeInd);
+	        session.enqueueInfected(nodeInd);
+	    }
+	
+
+	    //getNeighbors should return a sorted list of node ids that are adjacent to nodeInd
+	    std::vector<int> neighbours = session.getNeighbours(nodeInd);
+	
+
+	    for (int i=0; i<neighbours.size() ; i++)
+	    {
+	        // hasVirusAt should check if there's a virus agent at the given id
+	        if (!session.hasVirusAt(neighbours[i]))
+	        {
+	            // Check if it needs to be agent instead of virus, and how to pass to add agent properly
+	            Virus cloneVirus(neighbours[i], session);
+	            session.addAgent(cloneVirus);
+	            break; // clones to one at a time.
+	        }
+	    }
+	}
+	
+
+	Agent* Virus::clone() const
+	{
+	    return new Virus(*this);
+	}
+	
+
+	int Virus::getNodeInd() const
+	{
+	    return nodeInd;
+	}
+

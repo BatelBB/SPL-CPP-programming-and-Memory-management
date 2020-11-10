@@ -1,25 +1,28 @@
 #include <iostream>
-#include "Session.h"
-#include "json.hpp"
 #include <fstream>
+#include "Tree.h"
+#include "json.hpp"
 
-using json = nlohmann::json;
+#define JSON_PATH "output.json"
 
 using namespace std;
 
-int main(int argc, char** argv){
-    if(argc != 2){
-        cout << "usage cTrace <config_path>" << endl;
-        return 0;
-    }
-    Session sess(argv[1]);
-    sess.simulate();
-
-    json js = sess.writeJson();
-    ofstream out("output.json");
-    out << js << endl;
-    
-    return 0;
+int tree_exp1(){
+    MaxRankTree t(1);
+    MaxRankTree t2(2);
+    t2.addChild(MaxRankTree(3));
+    t2.addChild(MaxRankTree(4));
+    t2.addChild(MaxRankTree(5));
+    t.addChild(t2);
+    t.addChild(MaxRankTree(6));
+    return t.traceTree();
 }
 
 
+int main(int argc, char** argv){
+    nlohmann::json j;
+    j["tree1"] = tree_exp1();
+    std::ofstream o(JSON_PATH);
+    o << j << endl;
+    return 0;
+}

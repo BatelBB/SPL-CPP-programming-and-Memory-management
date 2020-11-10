@@ -1,44 +1,42 @@
 #ifndef GRAPH_H_
-#define GRAPH_H_
+	#define GRAPH_H_
+	
 
-#include <vector>
+	#include <vector>
+	
 
-class Graph
-{
-public:
-    //default constructor
-    Graph();
+	class Graph{
+	public:
+	    // need default constructor for session constructor, as meni said in lecture 6 when someone asked
+	    Graph();
+	
 
-    //constructor, initilizing with edges and "isInfectedVec" - to get a graph that's initilized from zero.
-    Graph(std::vector<std::vector<int>> matrix);
+	    Graph(std::vector<std::vector<int>> matrix); 
+	    
+	    void infectNode(int nodeInd);
+	    bool isInfected(int nodeInd);
+	
 
-    //it take the current node and puts the virus in it. (bool - turns it to true)
-    void infectNode(int nodeInd);
+	    //getNeighbors should return a sorted list of node ids that are adjacent to nodeInd
+	    std::vector<int> getNeighbours(int nodeInd) const;
+	
 
-    //boolean method that checks if the current node is infected or not (calls the isInfectedVec with the curr nodeInd)
-    bool isInfected(int nodeInd);
+	    // isolate should remove all links to adjacent nodes to the given node
+	    void isolate(int nodeInd);
+	
 
-    //uses a queue data structure to handle the neighbors of the node,
-    //take a one dimention int vector and pushes it every time there's an edge between two nodes.
-    std::vector<int> getNodeNeighbors(int nodeInd) const;
+	    int size() const;
+	
 
-    //takes the node that has been infected and removes it from the graph, separeting it from it fellow nodes.
-    //using the edges 2 dimention vector - deleting the edges (0).
-    void remove(int nodeInd);
+	    std::vector<std::vector<int>> getEdges() const;
+	    std::vector<int> getInfected() const; 
+	
 
-    //returns the number of edges in the 2 dimention vector edges.
-    int graphSize() const;
+	private:
+	    std::vector<std::vector<int>> edges;
+	    std::vector<bool> infected;
+	};
+	
 
-    std::vector<std::vector<int>> getGraph() const;
+	#endif
 
-    std::vector<int> getInfectedNodes() const;
-
-private:
-    //the edges of the graph
-    std::vector<std::vector<int>> edges;
-
-    //a boolean vector array that contains the infection information of each node.
-    std::vector<bool> isInfectedVec;
-};
-
-#endif

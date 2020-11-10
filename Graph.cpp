@@ -1,121 +1,83 @@
-#include <iostream>
-#include "json.hpp"
-#include <fstream>
-#include "Graph.h"
+#include <vector>
+	#include "Graph.h"
+	
 
-using json = nlohmann::json;
+	using namespace std;
+	
 
-Graph::Graph()
-{
-}
-Graph::Graph(std::vector<std::vector<int>> matrix) : edges(matrix), isInfectedVec(std::vector<bool>(matrix[0].size(), false))
-{
-}
-/**{
+	// should pass empty vectors or nullptr?
+	Graph::Graph(){}
+	
 
-    std::ifstream ifs("/home/spl211/Assignment1/Test/config1.json");
-    json jf = json::parse(ifs);
-    std::vector<std::vector<int>> matrix = jf["graph"];
+	Graph::Graph(vector<vector<int>> matrix): edges(matrix), infected(vector<bool>(matrix[0].size(),false)){}
+	
 
+	bool Graph::isInfected(int nodeInd)
+	{
+	    return infected[nodeInd];
+	}
+	
 
-   /*
-    //Initialize the matrix to be the same as the one in the json file
-    size_t mSize = jf["graph"].size();
-    
-    for (int i = 0; i < mSize; i++)
-    {
-        
-        for (int j = 0; mSize; j++)
-        {
-            edges.push_back(jf["graph"][i][j]);
-        }
-        matrix.push_back(edges);
-    }
-*/
+	void Graph::infectNode(int nodeInd)
+	{
+	    infected[nodeInd] = true;
+	}
+	
 
-//}
+	//getNeighbors should return a sorted list of node ids that are adjacent to nodeInd
+	vector<int> Graph::getNeighbours(int nodeInd) const
+	{
+	    vector<int> neighbours;
+	
 
-// CPP program to convert Adjacency matrix
-// representation to Adjacency List
+	    for (int i=0; i<edges.size(); i++)
+	    {
+	        if (edges[nodeInd][i] == 1)
+	        {
+	            neighbours.push_back(i);
+	        }
+	    }
+	
 
-// converts from adjacency matrix to adjacency list
-/**std::vector<std::vector<int>> convert( std::vector<std::vector<int>> a) 
-{ 
-    std::vector<std::vector<int>> adjList(a.size()); 
-    for (int i = 0; i < a.size(); i++) 
-    { 
-          
-        for (int j = 0; j < a[i].size(); j++) 
-        { 
-            if (a[i][j] == 1) 
-            { 
-                adjList[i].push_back(j); 
-            } 
-        } 
-    } 
-    return adjList; 
-} 
-// Print the martix
-/**
-void toString()
-{
-    for (int i = 0; i < numVertices; i++)
-    {
-        cout << i << " : ";
-        for (int j = 0; j < numVertices; j++)
-            cout << adjMatrix[i][j] << " ";
-        cout << "\n";
-    }
-}
-**/
+	    return neighbours;
+	}
+	
 
-void Graph::infectNode(int nodeInd)
-{
-    isInfectedVec[nodeInd] = true;
-}
-bool Graph::isInfected(int nodeInd)
-{
-    return isInfectedVec[nodeInd];
-}
+	// isolate should remove all links to adjacent nodes to the given node
+	void Graph::isolate(int nodeInd)
+	{
+	    for (int i=0; i<edges.size(); i++)
+	    {
+	        edges[nodeInd][i] = 0;
+	        edges[i][nodeInd] = 0;
+	    }
+	}
+	
 
-std::vector<int> Graph::getNodeNeighbors(int nodeInd) const
-{
-    std::vector<int> nodeNeighbors;
-    for (int i = 0; i < edges.size(); i++)
-    {
-        if (edges[nodeInd][i] == 1)
-        {
-            nodeNeighbors.push_back(i);
-        }
-    }
-    return nodeNeighbors;
-}
+	int Graph::size() const
+	{
+	    return edges[0].size();
+	}
+	
 
-void Graph::remove(int nodeInd)
-{
-    for (int i = 0; i < edges.size(); i++)
-    {
-        edges[nodeInd][i] = 0;
-        edges[i][nodeInd] = 0;
+	vector<vector<int>> Graph::getEdges() const
+	{
+	    return edges;
+	}
+	
 
-    }
-}
+	std::vector<int> Graph::getInfected() const
+	{
+	    vector<int> currentInfected;
+	    for (int i=0; i<infected.size(); i++)
+	    {
+	        if (infected[i])
+	        {
+	            currentInfected.push_back(i);
+	        }
+	    }
+	
 
-int Graph::graphSize() const
-{
-    return edges[0].size();
-}
+	    return currentInfected;
+	}
 
-std::vector<std::vector<int>> Graph::getGraph() const {
-    return edges;
-}
-
-std::vector<int> Graph::getInfectedNodes() const{
-    std::vector<int> currNodeInfected;
-    for(int i=0; i<isInfectedVec.size(); i++){
-        if (isInfectedVec[i]){
-            currNodeInfected.push_back(i);
-        }
-    }
-    return currNodeInfected;
-}
