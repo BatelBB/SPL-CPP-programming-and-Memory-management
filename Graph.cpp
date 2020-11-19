@@ -1,83 +1,34 @@
+#ifndef GRAPH_H_
+#define GRAPH_H_
+
+
 #include <vector>
-	#include "Graph.h"
-	
+#include "json.hpp"
+#include "Tree.h"
+#include <queue>
 
-	using namespace std;
-	
+class Graph {
+public:
+    Graph(std::vector<std::vector<int>> matrix);
 
-	// should pass empty vectors or nullptr?
-	Graph::Graph(){}
-	
+    void infectNode(int nodeInd);
 
-	Graph::Graph(vector<vector<int>> matrix): edges(matrix), infected(vector<bool>(matrix[0].size(),false)){}
-	
+    bool isInfected(int nodeInd);
 
-	bool Graph::isInfected(int nodeInd)
-	{
-	    return infected[nodeInd];
-	}
-	
+    std::vector<int> getNodeNeighbors(int nodeInd) const;
 
-	void Graph::infectNode(int nodeInd)
-	{
-	    infected[nodeInd] = true;
-	}
-	
+    void separateNode(int nodeInd);
 
-	//getNeighbors should return a sorted list of node ids that are adjacent to nodeInd
-	vector<int> Graph::getNeighbours(int nodeInd) const
-	{
-	    vector<int> neighbours;
-	
+    nlohmann::json writejson();
 
-	    for (int i=0; i<edges.size(); i++)
-	    {
-	        if (edges[nodeInd][i] == 1)
-	        {
-	            neighbours.push_back(i);
-	        }
-	    }
-	
+    Tree *BFS(int nodeInd, const Session &session) const;
 
-	    return neighbours;
-	}
-	
+private:
+    std::vector<std::vector<int>> edges;
 
-	// isolate should remove all links to adjacent nodes to the given node
-	void Graph::isolate(int nodeInd)
-	{
-	    for (int i=0; i<edges.size(); i++)
-	    {
-	        edges[nodeInd][i] = 0;
-	        edges[i][nodeInd] = 0;
-	    }
-	}
-	
 
-	int Graph::size() const
-	{
-	    return edges[0].size();
-	}
-	
+    std::vector<bool> infected;
+};
 
-	vector<vector<int>> Graph::getEdges() const
-	{
-	    return edges;
-	}
-	
-
-	std::vector<int> Graph::getInfected() const
-	{
-	    vector<int> currentInfected;
-	    for (int i=0; i<infected.size(); i++)
-	    {
-	        if (infected[i])
-	        {
-	            currentInfected.push_back(i);
-	        }
-	    }
-	
-
-	    return currentInfected;
-	}
+#endif
 
