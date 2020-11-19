@@ -1,76 +1,101 @@
 #ifndef TREE_H_
-	#define TREE_H_
-	
+#define TREE_H_
 
-	#include <vector>
-	
 
-	class Session;
-	
+#include <vector>
 
-	class Tree{
-	public:
-	    Tree(int rootLabel);
-	    void addChild(const Tree& child);
-	
 
-	    int getNode() const;
-	
+class Session;
 
-	    //might not be okay to add public getter for children
-	    std::vector<Tree*> getChildren() const;
-	    //pure virtual method for copy constructor
-	    virtual Tree* clone() const =0;
-	
 
-	
+class Tree {
+public:
+    Tree(int rootLabel);
 
-	    static Tree* createTree(const Session& session, int rootLabel);
-	    virtual int traceTree()=0;
-	private:
-	    int node;
-	
+    virtual ~Tree();
 
-	//allowed to change to protected according to forum post
-	//https://www.cs.bgu.ac.il/~spl211/Assignments/Assignment_1Forum?action=show-thread&id=bc900facefe72dfa38374015226c27d9
-	protected:
-	    std::vector<Tree*> children;
-	};
-	
 
-	class CycleTree: public Tree{
-	public:
-	    CycleTree(int rootLabel, int currCycle);
-	    virtual int traceTree();
-	    virtual Tree* clone() const;
-	
+    //Copy Constructor
+    Tree(const Tree &other);
 
-	private:
-	    int currCycle;
-	};
-	
 
-	class MaxRankTree: public Tree{
-	public:
-	    MaxRankTree(int rootLabel);
-	    virtual int traceTree();
-	
+    //Copy Assignment
+    Tree &operator=(const Tree &other);
 
-	    virtual Tree* clone() const;
-	
 
-	private:
-	    int maxRank;
-	};
-	
+    //Move Constructor
+    Tree(Tree &&other);
 
-	class RootTree: public Tree{
-	public:
-	    RootTree(int rootLabel);
-	    virtual int traceTree();
-	    virtual Tree* clone() const;
-	};
-	
 
-	#endif
+    //Move Assignment
+    Tree &operator=(Tree &&other);
+
+
+    void addChild(const Tree &child);
+
+
+    int getNode() const;
+
+    std::vector<Tree *> getSubTrees() const;
+
+
+    virtual Tree *clone() const = 0;
+
+
+    static Tree *createTree(const Session &session, int rootLabel);
+
+
+    virtual int traceTree() = 0;
+
+private:
+    int node;
+
+
+    void copy(const int otherNode, const std::vector<Tree *> &otherChildren);
+
+
+    void clear();
+
+
+    //allowed to change to protected according to forum post
+    //https://www.cs.bgu.ac.il/~spl211/Assignments/Assignment_1Forum?action=show-thread&id=bc900facefe72dfa38374015226c27d9
+protected:
+    std::vector<Tree *> children;
+};
+
+
+class CycleTree : public Tree {
+public:
+    CycleTree(int rootLabel, int currCycle);
+
+    virtual int traceTree();
+
+    virtual Tree *clone() const;
+
+private:
+    int currCycle;
+};
+
+
+class MaxRankTree : public Tree {
+public:
+    MaxRankTree(int rootLabel);
+
+    virtual int traceTree();
+
+    virtual Tree *clone() const;
+};
+
+
+class RootTree : public Tree {
+public:
+    RootTree(int rootLabel);
+
+    virtual int traceTree();
+
+    virtual Tree *clone() const;
+};
+
+
+#endif
 
