@@ -1,24 +1,25 @@
-all: Assignment_1
+all: cTrace
 
 
 
-Assignment_1: bin/Main.o bin/Agent.o bin/Graph.o bin/Session.o bin/Tree.o
-	@echo 'Building target: Assignment_1'
+cTrace: bin/Main.o bin/Agent.o bin/Graph.o bin/Session.o bin/Tree.o
+	@echo 'Building target: cTrace'
 	@echo 'Invoking: C++ Linker'
-	g++ -o bin/run bin/Main.obin/Agent.o bin/Graph.o bin/Session.o bin/Tree.o
-	@echo 'Finished building target: Assignment_1'
+	g++ -o bin/run bin/Main.o bin/Agent.o bin/Graph.o bin/Session.o bin/Tree.o
+	@echo 'Finished building target: cTrace'
 	@echo ' '
+	
 
 bin/Main.o: src/Main.cpp
-	g++ -g -Wall -Weffc++ -std=c++11 -c -Iinclude -o bin/Main.o src/Main.cpp 
-	
+	g++ -g -Wall -Weffc++ -std=c++11 -c -Iinclude -o bin/Main.o src/Main.cpp
+
 bin/Agent.o: src/Agent.cpp
 	g++ -g -Wall -Weffc++ -std=c++11 -c -Iinclude -o bin/Agent.o src/Agent.cpp
 
 
 bin/Graph.o: src/Graph.cpp
 	g++ -g -Wall -Weffc++ -std=c++11 -c -Iinclude -o bin/Graph.o src/Graph.cpp
-	
+
 	
 
 bin/Session.o: src/Session.cpp
