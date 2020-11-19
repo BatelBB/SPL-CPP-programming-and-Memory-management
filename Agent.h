@@ -1,62 +1,59 @@
 #ifndef AGENT_H_
-	#define AGENT_H_
-	
+#define AGENT_H_
 
-	#include <vector>
-	#include "Session.h"
-	
 
-	class Agent{
-	public:
-	    Agent(Session& session);
-	    
-	    virtual void act()=0;
-	
+#include <vector>
+#include "Session.h"
 
-	    //pure virtual method for copy constructor
-	    virtual Agent* clone() const =0;
-	
 
-	    virtual int getNodeInd() const =0;
-	protected:
-	    Session& session;
-	};
-	
+class Agent {
+public:
+    Agent();
 
-	class ContactTracer: public Agent{
-	public:
-	    ContactTracer(Session& session);
-	    
-	    virtual void act();
-	
+    virtual void act(Session &session) = 0;
 
-	    virtual Agent* clone() const;
-	
 
-	//returns -1
-	    virtual int getNodeInd() const;
-	};
-	
+    virtual Agent *clone() const = 0;
 
-	
 
-	class Virus: public Agent{
-	public:
-	    Virus(int nodeInd, Session& session);
-	    
-	    virtual void act();
-	
+    virtual int getNodeInd() const = 0;
 
-	    virtual Agent* clone() const;
-	
 
-	    virtual int getNodeInd() const;
-	
+    virtual ~Agent();
+};
 
-	private:
-	    const int nodeInd;
-	};
-	
 
-	#endif
+class ContactTracer : public Agent {
+public:
+    ContactTracer();
+
+    virtual void act(Session &session);
+
+
+    virtual Agent *clone() const;
+
+
+    virtual int getNodeInd() const;
+};
+
+
+class Virus : public Agent {
+public:
+    Virus(int nodeInd);
+
+    virtual void act(Session &session);
+
+
+    virtual Agent *clone() const;
+
+
+    virtual int getNodeInd() const;
+
+
+private:
+    const int nodeInd;
+};
+
+
+#endif
 
