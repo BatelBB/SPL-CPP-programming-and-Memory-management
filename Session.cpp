@@ -1,246 +1,206 @@
 #include <vector>
-	#include <string>
-	#include "Session.h"
-	#include "Agent.h"
-	#include "Graph.h"
-	#include "json.hpp"
-	#include <iostream>
-	#include <fstream>
-	
+#include <string>
+#include <iostream>
+#include <fstream>
+#include "Session.h"
+#include "Agent.h"
+#include "json.hpp"
 
-	using json = nlohmann::json;
-	using namespace std;
-	
 
-	Session::Session(const std::string& path):currentCycle(0)
-	{
-	    // read a JSON file
-	    ifstream i(path);
-	    json j;
-	    i >> j;
-	
+using json = nlohmann::json;
+//Batel - constructor
+Session::Session(const std::string &path) : g(Graph(std::vector<std::vector<int>>())), treeType(Root),
+                                            agents(std::vector<Agent *>()), isVirusCarrier(std::vector<bool>()),
+                                            infectedQueue(std::queue<int>()), currCycle(0) {
+    std::ifstream inputFile;
+    inputFile.open(path);
+    json js;
+    inputFile >> js;
+    readjson(js);
+}
+//Batel - Destructor
+Session::~Session() {
+    clear();
+}
+//Batel - clear method for destructor
+void Session::clear() {
+    for (Agent *agent : agents)
+        if (agent) {
+            delete agent;
+        }
 
-	    this->from_json(j);
-	}
-	
+    agents.clear();
+}
+//Batel - copy constructor
+Session::Session(const Session &other) : g(Graph(std::vector<std::vector<int>>())), treeType(Root),
+                                         agents(std::vector<Agent *>()), isVirusCarrier(std::vector<bool>()),
+                                         infectedQueue(std::queue<int>()), currCycle(0) {
 
-	json Session::to_json() 
-	{
-	    json j;
-	    j["graph"] = g.getEdges();
-	    j["infected"] = g.getInfected();
-	    return j;
-	    
-	}
-	
+    copy(other.g, other.treeType, other.agents, other.isVirusCarrier, other.infectedQueue, other.currCycle);
+}
+//Batel - copy constructor
+void Session::copy(const Graph &otherGraph, const TreeType otherTreeType, const std::vector<Agent *> &otherAgents,
+                   const std::vector<bool> &otherViCar, const std::queue<int> &otherInfeQ, const int otherCycle) {
 
-	void Session::from_json(const json& j) 
-	{
-	    // initialize g
-	    vector<vector<int>> matrix;
-	    j.at("graph").get_to(matrix);
-	    g = Graph(matrix);
-	
+    g = otherGraph;
+    treeType = otherTreeType;
+    isVirusCarrier = otherViCar;
+    infectedQueue = otherInfeQ;
+    currCycle = otherCycle;
 
-	    //initialize hasVirus
-	    hasVirus = vector<bool>(matrix[0].size(),false);
-	
+    for (auto &agent : otherAgents) {
+        addAgent(*agent);
+    }
+}
+//Batel - copy assignment operator
+Session &Session::operator=(const Session &other) {
 
-	    //initialize treeType
-	    string treeLetter = j["tree"];
-	    if (treeLetter == "M")
-	    {
-	        treeType = MaxRank;
-	    }
-	    else
-	    {
-	        if (treeLetter == "C")
-	        {
-	            treeType = Cycle;
-	        }
-	        else
-	        {
-	            treeType = Root;
-	        }  
-	    }
-	    
-	
+    if (this != &other) {
+        clear();
+        copy(other.g, other.treeType, other.agents, other.isVirusCarrier, other.infectedQueue, other.currCycle);
+    }
 
-	    // initialize agents
-	    for (auto& el : j.at("agents"))
-	    {
-	        std::string agentType = el[0];
-	        int nodeInd = el[1];
-	        if (agentType == "V")
-	        {
-	            addAgent(Virus(nodeInd , *this));
-	        }
-	        else
-	        {
-	            addAgent(ContactTracer(*this));
-	        }
-	    }
-	}
-	
+    return *this;
+}
+//Batel - move constructor
+Session::Session(Session &&other) : g(std::move(other.g)), treeType(other.treeType), agents(move(other.agents)),
+                                    isVirusCarrier(move(other.isVirusCarrier)),
+                                    infectedQueue(move(other.infectedQueue)), currCycle(other.currCycle) {
 
-	// might not be the best idea to just delegate to g
-	void Session::infectNode(int nodeInd)
-	{
-	    g.infectNode(nodeInd);
-	}
-	bool Session::isInfected(int nodeInd)
-	{
-	    return g.isInfected(nodeInd);
-	}
-	std::vector<int> Session::getNeighbours(int nodeInd) const
-	{
-	    return g.getNeighbours(nodeInd);
-	}
-	void Session::isolate(int nodeInd)
-	{
-	    g.isolate(nodeInd);
-	}
-	
+    other.treeType = Root;
+    other.currCycle = 0;
+}
+//Batel - move assignment operator
+Session &Session::operator=(Session &&other) {
 
-	
+    if (this != &other) {
 
-	// when a virus is added, hasVirus is updated
-	void Session::addAgent(const Agent& agent)
-	{
-	    // need to clone agent to add to list, according to forum post
-	    // https://www.cs.bgu.ac.il/~spl211/Assignments/Assignment_1Forum?action=show-thread&id=4292df802b6b39d3b33a6db7d72bec99
-	    agents.push_back(agent.clone());
-	
+        g = std::move(other.g);
+        treeType = other.treeType;
+        agents = move(other.agents);
+        isVirusCarrier = move(other.isVirusCarrier);
+        infectedQueue = move(other.infectedQueue);
+        currCycle = other.currCycle;
 
-	    int nodeInd = agent.getNodeInd();
-	    if (nodeInd!= -1)
-	    {
-	        hasVirus[nodeInd] = true;
-	    }      
-	}
-	
+        other.treeType = Root;
+        other.currCycle = 0;
+    }
 
-	
+    return *this;
+}
 
-	bool Session::hasVirusAt(int nodeInd) const
-	{
-	    return hasVirus[nodeInd];
-	}
-	
+void Session::writejson(const std::string &path) {
 
-	
+    json j = g.writejson();
+    std::ofstream outputFile;
+    outputFile.open(path);
+    outputFile << j << std::endl;
+}
 
-	void Session::enqueueInfected(int nodeInd)
-	{
-	    infectedQueue.push(nodeInd);
-	}
-	
+void Session::readjson(const json &js) {
 
-	int Session::dequeueInfected()
-	{
-	    if(!infectedQueue.empty())
-	    {
-	        int nextInfected = infectedQueue.front();
-	        infectedQueue.pop();
-	        return nextInfected;
-	    }
-	    return -1;
-	}
-	
+    std::vector<std::vector<int>> matrix;
+    js.at("graph").get_to(matrix);
+    g = Graph(matrix);
+    isVirusCarrier = std::vector<bool>(matrix[0].size(), false);
+    std::string treeLetter = js["tree"];
+    if (treeLetter == "M") {
+        treeType = MaxRank;
+    } else if (treeLetter == "C") {
+            treeType = Cycle;
+        } else {
+            treeType = Root;
+        }
 
-	int Session::getCurrentCycle() const
-	{
-	    return currentCycle;
-	}
-	
+    for (auto &element : js.at("agents")) {
+        std::string agentType = element[0];
+        int nodeInd = element[1];
+        if (agentType == "V") {
+            addAgent(Virus(nodeInd));
+        } else {
+            addAgent(ContactTracer());
+        }
+    }
+}
+//Batel - runs the simulator
+void Session::simulate() {
+    std::string outputPath = "./output.json";
+    bool isDone = false;
 
-	
+    while (!isDone) {
+        int agentsSize = agents.size();
+        for (int i = 0; i < agentsSize; i++) {
+            agents[i]->act(*this);
+        }
 
-	Tree* Session::BFS(int nodeInd) const
-	{
-	    vector<int> neighbours = getNeighbours(nodeInd);
-	
+        isDone = true;
+        int isVirusCarrierSize = isVirusCarrier.size();//Batel - to deal with unsigned integer
+        for (int i = 0; i < isVirusCarrierSize; i++) {
+            if (isCarrierAt(i) != isInfected(i)) {
+                isDone = false;
+            }
+        }
+        currCycle++;
+    }
+    writejson(outputPath);
+}
 
-	    vector<bool> visited(g.size(), false);
-	  
-	    // Create a queue for BFS 
-	    queue<Tree *> BFSqueue; 
-	  
-	    Tree* root = Tree::createTree(*this,nodeInd);
-	    // Mark the current node as visited and enqueue it 
-	    visited[nodeInd] = true; 
-	    BFSqueue.push(root); 
-	
+void Session::addAgent(const Agent &agent) {
+    agents.push_back(agent.clone());
 
-	    
-	  
-	    //This is gonna be a bitch to debug lol
-	    while(!BFSqueue.empty()) 
-	    { 
-	        // Dequeue a vertex from queue 
-	        Tree* currentTree = BFSqueue.front(); 
-	        int currentNode = currentTree->getNode();
-	        BFSqueue.pop();
-	
+    int nodeInd = agent.getNodeInd();
+    if (nodeInd != -1) {
+        isVirusCarrier[nodeInd] = true;
+    }
+}
 
-	        neighbours = getNeighbours(currentNode);
-	
+void Session::setGraph(const Graph &graph) {
+    g = graph;
+}
 
-	        int childNum = 0;
-	        for (int i=0; i<neighbours.size() ; i++)
-	        {
-	            
-	            if (!visited[neighbours[i]])
-	            {   // need to delete child?
-	                Tree* child = Tree::createTree(*this,neighbours[i]);
-	                visited[neighbours[i]] = true;
-	                
-	                currentTree->addChild(*child);
-	                BFSqueue.push(currentTree->getChildren()[childNum]);
-	                childNum++;
-	            }
-	        } 
-	    }
-	
+void Session::enqueueInfected(int nodeInd) {
+    infectedQueue.push(nodeInd);
+}
 
-	    return root;
-	}
-	
+int Session::dequeueInfected() {
+    if (!infectedQueue.empty()) {
+        int nextInfected = infectedQueue.front();
+        infectedQueue.pop();
+        return nextInfected;
+    }
+    return -1;
+}
+//Batel - tree type getter
+TreeType Session::getTreeType() const {
+    return treeType;
+}
 
-	
+//Batel - current cycle getter
+int Session::getCurrCycle() const {
+    return currCycle;
+}
 
-	TreeType Session::getTreeType() const
-	{
-	    return treeType;
-	}
-	
+bool Session::isCarrierAt(int nodeInd) const {
+    return isVirusCarrier[nodeInd];
+}
 
-	void Session::simulate()
-	{
-	    bool finished = false;
-	
+void Session::infectNode(int nodeInd) {
+    g.infectNode(nodeInd);
+}
 
-	    while (!finished)
-	    {
-	        vector<Agent*> copyAgents;
-	        for (int i=0; i<agents.size(); i++)
-	        {
-	            copyAgents.push_back(agents[i]->clone());
-	        }
-	        for (int i=0; i<copyAgents.size(); i++)
-	        {
-	            (*copyAgents[i]).act();
-	        }
-	
+bool Session::isInfected(int nodeInd) {
+    return g.isInfected(nodeInd);
+}
+//Batel - node getter
+std::vector<int> Session::getNodeNeighbors(int nodeInd) const {
+    return g.getNodeNeighbors(nodeInd);
+}
 
-	        finished = true;
-	        for (int i=0; i<hasVirus.size(); i++)
-	        {
-	            if (hasVirusAt(i) != isInfected(i))
-	            {
-	                finished = false;
-	            }
-	        }
-	    }
-	}
+void Session::separateNode(int nodeInd) {
+    g.separateNode(nodeInd);
+}
+
+Tree *Session::BFS(int nodeInd) const {
+    return g.BFS(nodeInd, *this);
+}
 
