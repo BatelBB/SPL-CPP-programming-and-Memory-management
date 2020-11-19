@@ -1,78 +1,89 @@
 #ifndef SESSION_H_
-	#define SESSION_H_
-	
+#define SESSION_H_
 
-	#include <vector>
-	#include <string>
-	#include "Graph.h"
-	#include "Tree.h"
-	#include "json.hpp"
-	#include <queue>
-	
 
-	class Agent;
-	
+#include <vector>
+#include <string>
+#include "Graph.h"
+#include "Tree.h"
+#include "json.hpp"
+#include <queue>
 
-	enum TreeType{
-	  Cycle,
-	  MaxRank,
-	  Root
-	};
-	
 
-	class Session{
-	public:
-	    Session(const std::string& path);
-	    
-	    void simulate();
-	    void addAgent(const Agent& agent);
-	    void setGraph(const Graph& graph);
-	    
-	    void enqueueInfected(int);
-	    int dequeueInfected();
-	    TreeType getTreeType() const;
-	
+class Agent;
 
-	    // hasVirusAt should check if there's a virus agent at the given id
-	    bool hasVirusAt(int nodeInd) const;
-	
 
-	    //should just invoke these functions on g
-	    void infectNode(int nodeInd);
-	    bool isInfected(int nodeInd);
-	    std::vector<int> getNeighbours(int nodeInd) const;
-	    void isolate(int nodeInd);
-	
+enum TreeType {
+    Cycle,
+    MaxRank,
+    Root
+};
 
-	    nlohmann::json to_json();
-	    void from_json(const nlohmann::json& j);
-	
 
-	    int getCurrentCycle() const;
-	
+class Session {
+public:
+    Session(const std::string &path);
 
-	    //BFS implementation
-	    Tree* BFS(int nodeInd) const;
-	
+    ~Session();
 
-	    
-	
+    Session(const Session &other);
 
-	private:
-	    Graph g;
-	    TreeType treeType;
-	    std::vector<Agent*> agents;
-	
+    Session &operator=(const Session &other);
 
-	    std::vector<bool> hasVirus;
-	
+    Session(Session &&other);
 
-	    std::queue<int> infectedQueue;
-	
+    Session &operator=(Session &&other);
 
-	    int currentCycle;
-	};
-	
 
-	#endif
+    void writejson(const std::string &path);
+
+    void readjson(const nlohmann::json &j);
+
+    void simulate();
+
+    void addAgent(const Agent &agent);
+
+    void setGraph(const Graph &graph);
+
+    void enqueueInfected(int);
+
+    int dequeueInfected();
+
+    TreeType getTreeType() const;
+
+
+    int getCurrCycle() const;
+
+    bool isCarrierAt(int nodeInd) const;
+
+
+    void infectNode(int nodeInd);
+
+    bool isInfected(int nodeInd);
+
+    std::vector<int> getNodeNeighbors(int nodeInd) const;
+
+    void separateNode(int nodeInd);
+
+    Tree *BFS(int nodeInd) const;
+
+
+private:
+    Graph g;
+    TreeType treeType;
+    std::vector<Agent *> agents;
+
+    std::vector<bool> isVirusCarrier;
+    std::queue<int> infectedQueue;
+
+    int currCycle;
+
+    void clear();
+
+    void copy(const Graph &otherGraph, const TreeType otherTreeType, const std::vector<Agent *> &otherAgents,
+              const std::vector<bool> &otherViCar, const std::queue<int> &otherInfeQ, const int otherCycle);
+};
+
+
+#endif
 
