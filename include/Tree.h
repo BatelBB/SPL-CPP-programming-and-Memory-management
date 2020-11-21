@@ -47,6 +47,8 @@ public:
 
     virtual int traceTree() = 0;
 
+
+
 private:
     int node;
 

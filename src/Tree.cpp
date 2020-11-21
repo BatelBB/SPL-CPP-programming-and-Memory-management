@@ -102,21 +102,21 @@ Tree *CycleTree::clone() const {
 the c'th node in this trip, where c is the cycle in which the tree was created. If the trip is less
 than c nodes long, returns the last node in it. */
 int CycleTree::traceTree() {
-
-    Tree *currTree = this;
-
     int treeDepth = 0;
+    Tree *leftChild = this;
 
     //runs until there is something to return
-    while (true) {
+     while(true) {
         //checks if the current cycle of the cycle tree is at tree depth, or if there are no subtrees to the node
-        if (currTree->getSubTrees().empty() || currCycle == treeDepth) {
-            return currTree->getNode();
+        if (leftChild->getSubTrees().empty()) {
+            return leftChild->getNode();
+        }else if (currCycle == treeDepth){
+            return leftChild->getNode();
+        }else {
+            treeDepth++;
+            //sets the current tree to the left most sub tree
+            leftChild = leftChild->getSubTrees()[0];
         }
-
-        treeDepth = treeDepth + 1;
-
-        currTree = currTree->getSubTrees()[0];
     }
 }
 
@@ -133,7 +133,7 @@ In case of a tie, the node with the smallest depth in the tree would be picked. 
 tie, then the left-most node in that tree would be picked.
 */
 int MaxRankTree::traceTree() {
-    int maxNode = -1;
+    int maxNodeInd = -1;
     int nodeMaxRank = -1;
     std::queue<Tree *> nodeRankQ;
 
@@ -143,21 +143,22 @@ int MaxRankTree::traceTree() {
         Tree *currTree = nodeRankQ.front();
         nodeRankQ.pop();
 
+        //we need this vector to add the current tree's children to the queue and to check the its rank
         std::vector<Tree *> currChildren;
         currChildren = currTree->getSubTrees();
 
         int currRank = currChildren.size(); //to deal with the unsigned integer
-        if (currRank > nodeMaxRank) {
-
-            maxNode = currTree->getNode();
-            nodeMaxRank = currRank;
-
-        }
+        //adds the new children to the queue
         for (int i = 0; i < currRank; i++) {
             nodeRankQ.push(currChildren[i]);
         }
+        //if the current rank is higher then the highest node rank we found so far, if so then it replaces it.
+        if (currRank > nodeMaxRank) {
+            maxNodeInd = currTree->getNode();
+            nodeMaxRank = currRank;
+        }
     }
-    return maxNode;
+    return maxNodeInd;
 }
 
 //constructor
@@ -172,6 +173,7 @@ Tree *RootTree::clone() const {
 int RootTree::traceTree() {
     return getNode();
 }
+
 
 
 

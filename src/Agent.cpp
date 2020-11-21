@@ -16,7 +16,7 @@ void ContactTracer::act(Session &session) {
     if (session.getQSize() != 0) {
         int topNode = session.dequeueInfected();
 
-        //checks if the top node in the queue is infected, if not it will return -1.
+        //checks if the top node in the queue is infected,
         if (topNode != -1) {
             Tree *currNode = session.BFS(topNode);
             int nodeToSeparate;
@@ -53,6 +53,7 @@ void Virus::act(Session &session) {
 
     int nodeNeighborsSize = nodeNeighbors.size(); //to deal with the unsigned integer
     for (int i = 0; i < nodeNeighborsSize; i++) {
+        //checks if the node is virus carrier, and if not it spreads the virus to this node
         if (!session.isCarrierAt(nodeNeighbors[i])) {
             Virus spreadVirus(nodeNeighbors[i]);
             session.addAgent(spreadVirus);

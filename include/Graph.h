@@ -23,11 +23,13 @@ public:
 
     Tree *BFS(int nodeInd, const Session &session) const;
 
+    Tree *BFSRecur(std::queue<Tree *>, const Session &session, std::vector<bool>) const;
+
 private:
     std::vector<std::vector<int>> edges;
 
 
-    std::vector<bool> infected;
+    std::vector<int> infected;
 };
 
 #endif
