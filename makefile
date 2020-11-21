@@ -5,7 +5,7 @@ all: cTrace
 cTrace: bin/Main.o bin/Agent.o bin/Graph.o bin/Session.o bin/Tree.o
 	@echo 'Building target: cTrace'
 	@echo 'Invoking: C++ Linker'
-	g++ -o bin/run bin/Main.o bin/Agent.o bin/Graph.o bin/Session.o bin/Tree.o
+	g++ -o bin/cTrace bin/Main.o bin/Agent.o bin/Graph.o bin/Session.o bin/Tree.o
 	@echo 'Finished building target: cTrace'
 	@echo ' '
 	
@@ -21,7 +21,6 @@ bin/Graph.o: src/Graph.cpp
 	g++ -g -Wall -Weffc++ -std=c++11 -c -Iinclude -o bin/Graph.o src/Graph.cpp
 
 	
-
 bin/Session.o: src/Session.cpp
 	g++ -g -Wall -Weffc++ -std=c++11 -c -Iinclude -o bin/Session.o src/Session.cpp
 	
